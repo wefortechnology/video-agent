@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Agent</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brandmark">▶ Video Agent</div>
+  <nav>
+    <button data-tab="create" class="active">Create</button>
+    <button data-tab="library">Library</button>
+    <button data-tab="playlists">Playlists</button>
+    <button data-tab="brands">Brands</button>
+    <button data-tab="setup">Setup</button>
+  </nav>
+</header>
+<main>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- CREATE -->
+  <section id="tab-create" class="tab active">
+    <div class="card">
+      <h2>1. What do you want to make?</h2>
+      <div class="grid2">
+        <label>Brand<select id="c-brand"></select></label>
+        <label>Format<select id="c-format"></select></label>
+        <label>Language<select id="c-lang"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option></select></label>
+        <label>Voice<select id="c-voice"></select></label>
+        <label id="c-lenwrap" class="hidden">YouTube length<select id="c-len">
+          <option value="0">Auto (content decides)</option><option value="3">About 3 min</option><option value="5">About 5 min</option>
+          <option value="10">About 10 min</option><option value="15">About 15 min</option><option value="20">About 20 min</option></select></label>
+        <label id="c-structwrap" class="hidden">Structure<select id="c-struct">
+          <option value="">Story in chapters</option><option value="list">Numbered list ("7 things…", 40-70 s per item)</option></select></label>
+        <label>AI video clips<select id="c-ai"><option value="0">Off</option><option value="1">On: 1-3 cinematic clips (falls back to animation if unavailable)</option></select></label>
+        <label>Style<select id="c-style"><option value="motion">Motion graphics (2D animation)</option><option value="footage">Stock footage</option></select></label>
+      </div>
+      <p class="hint" id="c-formathint"></p>
+      <label>Brief or prompt
+        <textarea id="c-brief" rows="3" placeholder="e.g. Diwali greeting for our supporters and partners, thank them for this year"></textarea>
+      </label>
+      <p class="hint">No personal data (names, phones, emails) in the brief.</p>
+      <div class="row">
+        <button class="primary" id="c-ideas">Suggest ideas</button>
+        <button id="c-direct">Skip ideas, write the script</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="c-ideas-card">
+      <h2>2. Pick an idea</h2>
+      <p class="hint" id="c-ideas-src"></p>
+      <div id="c-ideas-list" class="ideas"></div>
+    </div>
+
+    <div class="card hidden" id="c-video-card">
+      <h2 id="c-video-title">3. Script and video</h2>
+      <div id="c-status" class="status"></div>
+      <div class="bar"><div id="c-bar"></div></div>
+      <div id="c-script" class="hidden"></div>
+      <div id="c-result" class="hidden"></div>
+    </div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section id="tab-library" class="tab">
+    <div class="row between"><h2>Library</h2>
+      <select id="l-brand"></select></div>
+    <div id="l-list" class="library"></div>
+  </section>
+
+  <!-- PLAYLISTS -->
+  <section id="tab-playlists" class="tab">
+    <div class="card">
+      <h2>New playlist (a series of videos on one topic)</h2>
+      <p class="hint">Gemini plans the episodes (one request), then writes each script in turn. Each script uses 1 Gemini request for a Short and
+        about 5-8 for a YouTube video, and the free tier allows about 20 per model per day, so big YouTube playlists may need Retry the next day.
+        Review the scripts, then press "Render all ready".</p>
+      <div class="grid2">
+        <label>Brand<select id="p-brand"></select></label>
+        <label>Format<select id="p-format"><option value="short">YouTube Shorts</option><option value="reel">Instagram Reels</option>
+          <option value="youtube">YouTube videos (4-6 min)</option><option value="linkedin">LinkedIn videos</option></select></label>
+        <label>Language<select id="p-lang"><option value="hi">हिन्दी (Hindi)</option><option value="en">English</option></select></label>
+        <label>Episodes<select id="p-count"><option>3</option><option selected>5</option><option>7</option><option>10</option></select></label>
+        <label id="p-ytwrap" class="hidden">Length and structure<select id="p-yt">
+          <option value="5|list">About 5 min, numbered list</option><option value="5|">About 5 min, story in chapters</option>
+          <option value="4|list">About 4 min, numbered list</option><option value="6|list">About 6 min, numbered list</option></select></label>
+        <label>Style<select id="p-style"><option value="motion">Motion graphics (2D animation)</option><option value="footage">Stock footage</option></select></label>
+      </div>
+      <label>Series topic<textarea id="p-topic" rows="2" placeholder="e.g. How the internet really works, explained simply for everyday phone users"></textarea></label>
+      <p class="hint">No personal data in the topic. If the videos need real numbers, put them and their sources here.</p>
+      <div class="row"><button class="primary" id="p-go">Plan playlist and write scripts</button></div>
+    </div>
+    <div id="p-list"></div>
+  </section>
+
+  <!-- BRANDS -->
+  <section id="tab-brands" class="tab">
+    <div class="split">
+      <div class="card"><h2>Brands</h2><div id="b-list" class="blist"></div><button id="b-new">+ New brand</button></div>
+      <div class="card" id="b-form-card">
+        <h2 id="b-title">New brand</h2>
+        <div class="grid2">
+          <label>Name<input id="b-name" maxlength="80"></label>
+          <label>Industry<input id="b-industry" placeholder="e.g. Nonprofit technology"></label>
+          <label>Default language<select id="b-lang"><option value="en">English</option><option value="hi">हिन्दी</option></select></label>
+          <label>Tone of voice<input id="b-tone" value="warm, clear, professional"></label>
+          <label>Brand colour<input id="b-primary" type="color" value="#1F4E79"></label>
+          <label>Accent colour<input id="b-accent" type="color" value="#F2A900"></label>
+        </div>
+        <label>About the brand<textarea id="b-about" rows="3"></textarea></label>
+        <label>Audience<input id="b-audience" placeholder="e.g. nonprofit leaders, CSR teams"></label>
+        <label>Never say or show<input id="b-avoid" placeholder="e.g. no competitor names, no stock statistics"></label>
+        <label>Default call to action<input id="b-cta" placeholder="e.g. Follow us for more"></label>
+        <div class="row">
+          <button class="primary" id="b-save">Save brand</button>
+          <label class="filebtn">Upload logo<input id="b-logo" type="file" accept="image/*"></label>
+          <button class="danger" id="b-del">Delete</button>
+        </div>
+        <div id="b-footage" class="hidden">
+          <h3>Your footage</h3>
+          <p class="hint">Upload your own clips (office, team, events, product). The agent uses them first, matching by the words you tag them with, then falls back to stock footage. Do not upload clips with identifiable beneficiaries unless you have consent.</p>
+          <div class="row"><input id="f-tags" placeholder="Tags, e.g. office team meeting" style="flex:1">
+            <label class="filebtn">Upload clip<input id="f-file" type="file" accept="video/*"></label></div>
+          <ul id="f-list" class="mlist"></ul>
+        </div>
+        <div id="b-memory" class="hidden">
+          <h3>What the agent remembers</h3>
+          <p class="hint">Facts and feedback are added to every script for this brand. Videos you approve are remembered so ideas do not repeat.</p>
+          <div class="row"><input id="m-text" placeholder="e.g. Always mention we work with nonprofits across India" style="flex:1"><button id="m-add">Add fact</button></div>
+          <ul id="m-list" class="mlist"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section id="tab-setup" class="tab">
+    <div class="card"><h2>Setup status</h2><div id="s-list"></div>
+      <p class="hint">Keys live only in the <code>.env</code> file in the project folder. Never paste them into this page or into chat.</p></div>
+    <div class="card"><h2>Voice test</h2>
+      <div class="grid2">
+        <label>Engine<select id="v-engine"></select></label>
+        <label>Language<select id="v-lang"><option value="en">English</option><option value="hi">हिन्दी</option></select></label>
+        <label>Voice<select id="v-voice"></select></label>
+      </div>
+      <label>Text<textarea id="v-text" rows="2">दिवाली पर हम उन सभी का धन्यवाद करते हैं जिन्होंने इस साल हमारा साथ दिया।</textarea></label>
+      <div class="row"><button class="primary" id="v-go">Play sample</button><span id="v-msg" class="hint"></span></div>
+      <audio id="v-audio" controls class="hidden"></audio>
+    </div>
+  </section>
+</main>
+<script src="app.js?v=20261109"></script>
+</body>
+</html>
